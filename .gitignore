@@ -1,73 +1,34 @@
-# App
-node_modules/
-*.sqlite
-order_*.pdf
-app/
-!frontend/src/app
-uploads/complaints/*.*
-!uploads/complaints/.gitkeep
-ftp/legal.md
-package-lock.json
-i18n/*.json
-i18n/*.invalid
-!frontend/src/assets/i18n/*.json
-!data/static/i18n/*.json
-/data/juiceshop.sqlite-journal
 
-# Build
-.nyc_output/
-.sass-cache/
-build/
-cache/
-coverage/
-dist/
-logs/
-vagrant/.vagrant/
-*.orig
-*.out
-*.log
-JSON
-JSON.map
-frontend/src/**/*.js
-/bom.json
-/bom.xml
+name: DevSecOps — Snyk SCA
 
-# IDEs
-.idea/
-.vscode/
-out/
-*.eml
-*.iml
-*.iws
-*.swp
-.ai/mcp/mcp.json
-.junie/memory/
-.junie/plans/
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
 
-# Branch ghpages
-assets/
-!frontend/src/assets/
+jobs:
+  snyk-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-# Custom configuration files
-config/*.yml
-!config/addo.yml
-!config/bodgeit.yml
-!config/ctf.yml
-!config/fbctf.yml
-!config/default.yml
-!config/juicebox.yml
-!config/quiet.yml
-!config/test.yml
-!config/7ms.yml
-!config/mozilla.yml
-!config/unsafe.yml
-!config/tutorial.yml
-!config/oss.yml
-!config/defcon33.yml
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-# System Files
-.DS_Store
+      - run: npm ci
 
-# Misc
-.playwright-mcp/
-cypress/screenshots/
+      - name: Snyk SCA Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Snyk Monitor
+        run: npx snyk monitor
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        if: github.ref == 'refs/heads/main'
