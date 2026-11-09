@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 22
 
-      - run: npm ci
+      - run: npm ci --ignore-scripts
 
       - name: Snyk SCA Scan
         uses: snyk/actions/node@master
